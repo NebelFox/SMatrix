@@ -4,53 +4,51 @@ namespace SMatrix
 {
     public class Matrix
     {
-        public double[,] elements = new double[0,0];
+        public double[,] Elements = new double[0,0];
 
-        public int Rows => elements.GetLength(0);
-        public int Columns => elements.GetLength(1);
+        public int Rows => Elements.GetLength(0);
+        public int Columns => Elements.GetLength(1);
 
         #region Fillers
 
         /// <summary>
-        /// Fills Matrix sized nxm with given nubmer.
+        /// Fills Matrix sized nxm with given number.
         /// </summary>
-        /// <param name="n">Nubmer of rows </param>
-        /// <param name="m">Number of columns.</param>
-        /// <param name="number"></param>
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
+        /// <param name="number">Value to fill with</param>
         public void FillWithNumber(int  n, int m, double number)
         {
-            elements = new double[n,m];
-            for (int i = 0; i < n; i++)
+            Elements = new double[n,m];
+            for (var i = 0; i < n; ++i)
             {
-                for (int j = 0; j < m; j++)
-                {
-                    elements[i,j] = number;
-                }
+                for (var j = 0; j < m; ++j)
+                    Elements[i,j] = number;
             }
         }
+        
         /// <summary>
-        /// Create a Identity matrix with size of nxn.
+        /// Create an Identity matrix.
         /// </summary>
-        /// <param name="n">Size of matrix.</param>
+        /// <param name="n">Size of matrix</param>
         public void FillIdentityMatrix(int n)
         {
-            elements = new double[n, n];
-            for (int i = 0;i < n; i++)
-            {
-                elements[i, i] = 1;
-            }
+            Elements = new double[n, n];
+            for (var i = 0;i < n; ++i)
+                Elements[i, i] = 1;
         }
+        
         /// <summary>
-        /// Create a Matrix Unit. 
+        /// Create a Matrix Unit, i.e. where all the values are 0, but only the [i,j] is 1.
         /// </summary>
-        /// <param name="i">Row position.</param>
-        /// <param name="j">Coloumn position.</param>
-        /// <param name="n">Nubmer of rows </param>
-        /// <param name="m">Number of columns.</param>
+        /// <param name="i">Row position of 1</param>
+        /// <param name="j">Column position of 1</param>
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
         public void FillMatrixUnit(int i , int j, int n , int m)
         {
-            elements =new double[n,m];
-            elements[i, j] = 1;
+            Elements =new double[n,m];
+            Elements[i, j] = 1;
         }
 
         #endregion
@@ -58,87 +56,71 @@ namespace SMatrix
         #region Addition
 
         /// <summary>
-        /// Add matrix to another matrix.
+        /// Add a matrix to this instance, element-wise.
         /// </summary>
-        public void AddMatrix(Matrix obj)
+        /// <param name="that">Matrix to add to this instance</param>
+        public void AddMatrix(Matrix that)
         {
-            if (elements.GetLength(0) != obj.elements.GetLength(0) || elements.GetLength(1) != obj.elements.GetLength(1))
-            { 
-                throw new InvalidOperationException("Cannot add two matrixes with different sizes."); 
-            }
-            else
+            if (Elements.GetLength(0) != that.Elements.GetLength(0) || Elements.GetLength(1) != that.Elements.GetLength(1))
+                throw new InvalidOperationException("Cannot add two matrices with different sizes.");
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int i = 0; i < elements.GetLength(0); i++)
-                {
-                    for (int j = 0; j < elements.GetLength(1); j++)
-                    {
-                        this.elements[i, j] += obj.elements[i, j];
-                    }
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] += that.Elements[i, j];
             }
         }
 
         /// <summary>
-        /// Add number to all elements in matrix.
+        /// Add number to each element in this matrix.
         /// </summary>
-        /// <param name="number">Number that will be added.</param>
+        /// <param name="number">Value to add</param>
         public void AddNumber(double number)
         {
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    this.elements[i, j] += number;
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] += number;
             }
         }
 
         /// <summary>
         /// Add number to the specific element in matrix.
         /// </summary>
-        /// <param name="number">Number that will be added.</param>
+        /// <param name="number">Value to add</param>
         /// <param name="i">Row position of the element.</param>
         /// <param name="j">Column position of the element.</param>
         public void AddNumberSpecific(double number, int i, int j)
         {
-            this.elements[i, j] += number;
+            this.Elements[i, j] += number;
         }
 
         #endregion
 
         #region Difference
         /// <summary>
-        /// Subtract the matrix.
+        /// Subtract a matrix from this instance, element-wise.
         /// </summary>
-        public void SubtractMatrix(Matrix obj)
+        /// <param name="that">Matrix to subtract</param>
+        public void SubtractMatrix(Matrix that)
         {
-            if (elements.GetLength(0) != obj.elements.GetLength(0) || elements.GetLength(1) != obj.elements.GetLength(1))
+            if (Elements.GetLength(0) != that.Elements.GetLength(0) || Elements.GetLength(1) != that.Elements.GetLength(1))
+                throw new InvalidOperationException("Cannot subtract two matrices with different sizes.");
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                throw new InvalidOperationException("Cannot substract two matrixes with different sizes.");
-            }
-            else
-            {
-                for (int i = 0; i < elements.GetLength(0); i++)
-                {
-                    for (int j = 0; j < elements.GetLength(1); j++)
-                    {
-                        this.elements[i, j] -= obj.elements[i, j];
-                    }
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] -= that.Elements[i, j];
             }
         }
         /// <summary>
-        /// Subtract number from matrix.
+        /// Subtract number from each element in this matrix.
         /// </summary>
-        /// <param name="number">Number that will be subtracted.</param>
+        /// <param name="number">Value to subtract</param>
         public void SubtractNumber(double number)
         {
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    this.elements[i, j] -= number;
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] -= number;
             }
         }
         #endregion
@@ -149,24 +131,20 @@ namespace SMatrix
         /// </summary>
         public void Transition()
         {
-            double[,] clone = new double[elements.GetLength(0), elements.GetLength(1)];
+            var clone = new double[Elements.GetLength(0), Elements.GetLength(1)];
 
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    clone[i, j] = elements[i, j];
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    clone[i, j] = Elements[i, j];
             }
 
-            elements = new double[clone.GetLength(1), clone.GetLength(0)];
+            Elements = new double[clone.GetLength(1), clone.GetLength(0)];
 
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    elements[i, j] = clone[j, i];
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] = clone[j, i];
             }
 
         }
@@ -178,12 +156,10 @@ namespace SMatrix
         /// </summary>
         public void ConsoleOutput()
         {
-            for (int i = 0; i < elements.GetLength(0); i++, Console.WriteLine("\n"))
+            for (var i = 0; i < Elements.GetLength(0); ++i, Console.WriteLine("\n"))
             {
-                for (int j = 0; j < elements.GetLength(1); j++, Console.Write("\t"))
-                {
-                    Console.Write(elements[i, j]);
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j, Console.Write("\t"))
+                    Console.Write(Elements[i, j]);
             }
         }
         /// <summary>
@@ -192,15 +168,15 @@ namespace SMatrix
         public void ConsoleInput()
         {
             Console.WriteLine("Enter number of rows");
-            int numberOfRows = Convert.ToInt32(Console.ReadLine());
+            var numberOfRows = Convert.ToInt32(Console.ReadLine());
             Console.WriteLine("Enter number of columns:");
-            int numberOfCols = Convert.ToInt32(Console.ReadLine());
-            for (int i = 0; i < numberOfRows; i++)
+            var numberOfCols = Convert.ToInt32(Console.ReadLine());
+            for (var i = 0; i < numberOfRows; ++i)
             {
-                for (int j = 0; j < numberOfCols; j++)
+                for (var j = 0; j < numberOfCols; ++j)
                 {
                     Console.WriteLine($"Enter element at position [{i},{j}]: ");
-                    elements[i, j] = Convert.ToInt32(Console.ReadLine());
+                    Elements[i, j] = Convert.ToInt32(Console.ReadLine());
                 }
             }    
         }
@@ -221,7 +197,7 @@ namespace SMatrix
             writer.WriteLine($"{Rows} {Columns}");
             writer.WriteLine(string.Join('\n', Enumerable.Range(0, Rows).Select(
                                          i => string.Join(' ', Enumerable.Range(0, Columns).Select(
-                                                              j => DoubleToString(elements[i, j]))))));
+                                                              j => DoubleToString(Elements[i, j]))))));
         }
 
         public void ReadFromConsole()
@@ -239,7 +215,7 @@ namespace SMatrix
         private void Read(TextReader reader)
         {
             int[] size = ReadVector(reader, Convert.ToInt32, 0, 2);
-            elements = new double[size[0], size[1]];
+            Elements = new double[size[0], size[1]];
             
             for (var i = 0; i < Rows; ++i)
             {
@@ -247,7 +223,7 @@ namespace SMatrix
                 double[] xs = ReadVector(reader, ParseDouble, i+1, Columns);
                 
                 for (var j = 0; j < xs.Length; ++j)
-                    elements[i, j] = xs[j];
+                    Elements[i, j] = xs[j];
             }
         }
 
@@ -285,40 +261,39 @@ namespace SMatrix
 
         #region Multiplication
         /// <summary>
-        /// Multiplies every element of matrix by given number.
+        /// Multiplies each element of this matrix by given number.
         /// </summary>
-        /// <param name="number"></param>
+        /// <param name="number">Value to multiply by</param>
         public void MultiplyByNumber(double number)
         {
-            for (int i = 0; i <elements.GetLength(0) ; i++)
+            for (var i = 0; i <Elements.GetLength(0) ; ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    elements[i, j] *= number;
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] *= number;
             }
         }
 
-        public void MatrixMultiplication(Matrix obj)
+        /// <summary>
+        /// Perform matrix multiplication
+        /// </summary>
+        /// <param name="that">Matrix to be used as right hand side of the multiplication</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void MatrixMultiplication(Matrix that)
         {
-            double[,] mult = new double[elements.GetLength(0), obj.elements.GetLength(1)];
+            if (Elements.GetLength(0) != that.Elements.GetLength(1))
+                throw new ArgumentException(
+                    "Rows number of left hand side matrix doesn't match columns number of right hand side matrix", 
+                    nameof(that));
+            
+            var mult = new double[Elements.GetLength(0), that.Elements.GetLength(1)];
 
-            if (elements.GetLength(0) != obj.elements.GetLength(1))
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                throw new InvalidOperationException("Cannot multiply two matrixes.");
-            }
-            else
-            {
-                for (int i = 0; i < elements.GetLength(0); i++)
+                for (var j = 0; j < that.Elements.GetLength(1); ++j)
                 {
-                    for (int j = 0; j < obj.elements.GetLength(1); j++)
-                    {
-                        mult[i, j] = 0;
-                        for (int k = 0; k < elements.GetLength(0); k++)
-                        {
-                            mult[i, j] += this.elements[i, k] * obj.elements[k, j];
-                        }
-                    }
+                    mult[i, j] = 0;
+                    for (var k = 0; k < Elements.GetLength(0); ++k)
+                        mult[i, j] += Elements[i, k] * that.Elements[k, j];
                 }
             }
         }
@@ -326,69 +301,45 @@ namespace SMatrix
 
         #region Inversion
 
-        void Upper(int size, int k, double[,] ident)
+        private void Upper(int size, int k, double[,] ident)
         {
-            for (int j = 0; j < size; j++)
-            {
-                ident[k, j] /= elements[k, k];
-            }
+            for (var j = 0; j < size; ++j)
+                ident[k, j] /= Elements[k, k];
 
-            for (int i = k + 1; i < size; i++)
+            for (int i = k + 1; i < size; ++i)
             {
-                for (int j = 0; j < size; j++)
-                {
-                    ident[i, j] -= ident[k, j] * elements[i, k];
-                }
+                for (var j = 0; j < size; ++j)
+                    ident[i, j] -= ident[k, j] * Elements[i, k];
             }
         }
 
-        void Lower(int size, int k, double[,] ident)
+        private void Lower(int size, int k, double[,] ident)
         {
-            for (int i = size - k - 2; i >= 0; i--)
+            for (int i = size - k - 2; i >= 0; --i)
             {
-                for (int j = 0; j < size; j++)
-                {
-                    ident[i, j] -= ident[size - k - 1, j] * elements[i, size - k - 1];
-                }
+                for (var j = 0; j < size; ++j)
+                    ident[i, j] -= ident[size - k - 1, j] * Elements[i, size - k - 1];
             }
         }
 
         public void InversionMatrix()
         {
-            double[,] ident = new double[elements.GetLength(0), elements.GetLength(1)];
-
-            if (elements.GetLength(0) != elements.GetLength(1))
-            {
+            if (Elements.GetLength(0) != Elements.GetLength(1))
                 throw new InvalidOperationException("Cannot find inverse matrix.");
-            }
-            else
+            
+            var ident = new double[Elements.GetLength(0), Elements.GetLength(1)];
+
+            for (var i = 0; i < ident.GetLength(0); ++i)
             {
-                for (int i = 0; i < ident.GetLength(0); i++)
-                {
-                    for (int j = 0; j < ident.GetLength(1); j++)
-                    {
-                        if (i != j)
-                        {
-                            ident[i, j] = 0;
-                        }
-                        else
-                        {
-                            ident[i, j] = 1;
-                        }
-                    }
-                }
-
-                for (int k = 0; k < elements.GetLength(0); k++)
-                {
-                    Upper(elements.GetLength(0), k, ident);
-                }
-
-                for (int k = 0; k < elements.GetLength(0); k++)
-                {
-                    Lower(elements.GetLength(0), k, ident);
-                }
+                for (var j = 0; j < ident.GetLength(1); ++j)
+                    ident[i, j] = Convert.ToInt32(i == j);
             }
 
+            for (var k = 0; k < Elements.GetLength(0); ++k)
+                Upper(Elements.GetLength(0), k, ident);
+
+            for (var k = 0; k < Elements.GetLength(0); ++k)
+                Lower(Elements.GetLength(0), k, ident);
         }
 
         #endregion
@@ -398,35 +349,27 @@ namespace SMatrix
         public void MainDiagonal()
         {
             double main = 0;
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
+                for (var j = 0; j < Elements.GetLength(1); ++j)
                 {
                     if (i == j)
-                    {
-                        main += elements[i, j];
-                    }
+                        main += Elements[i, j];
                 }
             }
-            //output
-            //Console.WriteLine(main);
         }
 
         public void AdditionalDiagonal()
         {
             double add = 0;
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
+                for (var j = 0; j < Elements.GetLength(1); ++j)
                 {
-                    if (i == elements.GetLength(1) - j - 1)
-                    {
-                        add += elements[i, j];
-                    }
+                    if (i == Elements.GetLength(1) - j - 1)
+                        add += Elements[i, j];
                 }
             }
-            //output
-            //Console.WriteLine(add);
         }
 
         #endregion
@@ -435,41 +378,35 @@ namespace SMatrix
 
         public void SwapRows(int row1, int row2, int col)
         {
-            for (int i = 0; i < col; i++)
-            {
-                double temp = elements[row1, i];
-                elements[row1, i] = elements[row2, i];
-                elements[row2, i] = temp;
-            }
+            for (var i = 0; i < col; ++i)
+                (Elements[row1, i], Elements[row2, i]) = (Elements[row2, i], Elements[row1, i]);
         }
 
         public void RankOfMatrix()
         {
-            int rank = elements.GetLength(1);
+            int rank = Elements.GetLength(1);
 
-            for (int row = 0; row < rank; row++)
+            for (var row = 0; row < rank; ++row)
             {
-                if (elements[row, row] != 0)
+                if (Elements[row, row] != 0)
                 {
-                    for (int col = 0; col < elements.GetLength(0); col++)
+                    for (var col = 0; col < Elements.GetLength(0); ++col)
                     {
                         if (col != row)
                         {
-                            double mult = (double)elements[col, row] / elements[row, row];
-                            for (int i = 0; i < rank; i++)
-                            {
-                                elements[col, i] -= (int)mult * elements[row, i];
-                            }
+                            double mult = Elements[col, row] / Elements[row, row];
+                            for (var i = 0; i < rank; ++i)
+                                Elements[col, i] -= (int)mult * Elements[row, i];
                         }
                     }
                 }
                 else
                 {
-                    bool reduce = true;
+                    var reduce = true;
 
-                    for (int i = row + 1; i < elements.GetLength(0); i++)
+                    for (int i = row + 1; i < Elements.GetLength(0); ++i)
                     {
-                        if (elements[i, row] != 0)
+                        if (Elements[i, row] != 0)
                         {
                             SwapRows(row, i, rank);
                             reduce = false;
@@ -479,15 +416,13 @@ namespace SMatrix
 
                     if (reduce)
                     {
-                        rank--;
+                        ++rank;
 
-                        for (int i = 0; i < elements.GetLength(0); i++)
-                        {
-                            elements[i, row] = elements[i, rank];
-                        }
+                        for (var i = 0; i < Elements.GetLength(0); ++i)
+                            Elements[i, row] = Elements[i, rank];
                     }
 
-                    row--;
+                    --row;
                 }
             }
 
@@ -502,14 +437,12 @@ namespace SMatrix
         /// Divides all elements by specific number.
         /// </summary>
         /// <param name="scalar">Number that the matrix is divided by.</param>
-        public void DivisionByScalar(double scalar)
+        public void DivideByScalar(double scalar)
         {
-            for (int i = 0; i < elements.GetLength(0); i++)
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
-                {
-                    this.elements[i, j] /= scalar;
-                }
+                for (var j = 0; j < Elements.GetLength(1); ++j)
+                    Elements[i, j] /= scalar;
             }
         }
 
@@ -521,16 +454,15 @@ namespace SMatrix
         /// <summary>
         /// Finds and returns the min element of matrix.
         /// </summary>
-        /// <param name="min">The min value.</param>
         public double FindMin()
         {
-            double min = elements[0, 0];
-            for (int i = 0; i < elements.GetLength(0); i++)
+            double min = Elements[0, 0];
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
+                for (var j = 0; j < Elements.GetLength(1); ++j)
                 {
-                    if (elements[i, j] <= min)
-                        min = elements[i, j];
+                    if (Elements[i, j] <= min)
+                        min = Elements[i, j];
                 }
             }
             return min;
@@ -539,16 +471,15 @@ namespace SMatrix
         /// <summary>
         /// Finds and returns the max element of matrix.
         /// </summary>
-        /// <param name="max">The max value.</param>
         public double FindMax()
         {
-            double max = elements[0, 0];
-            for (int i = 0; i < elements.GetLength(0); i++)
+            double max = Elements[0, 0];
+            for (var i = 0; i < Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < elements.GetLength(1); j++)
+                for (var j = 0; j < Elements.GetLength(1); ++j)
                 {
-                    if (elements[i, j] >= max)
-                        max = elements[i, j];
+                    if (Elements[i, j] >= max)
+                        max = Elements[i, j];
                 }
             }
             return max;
@@ -560,63 +491,58 @@ namespace SMatrix
 
         public static Matrix operator +(Matrix firstMatrix, Matrix secondMatrix)
         {
-            if (firstMatrix.elements.GetLength(0) != firstMatrix.elements.GetLength(0) 
-                || firstMatrix.elements.GetLength(1) != firstMatrix.elements.GetLength(1))
+            if (firstMatrix.Elements.GetLength(0) != firstMatrix.Elements.GetLength(0) 
+                || firstMatrix.Elements.GetLength(1) != firstMatrix.Elements.GetLength(1))
+                throw new InvalidOperationException("Cannot add two matrices with different sizes.");
+            
+            var result = new Matrix
             {
-                throw new InvalidOperationException("Cannot add two matrixes with different sizes.");
-            }
-            Matrix result = new Matrix();
-            result.elements = new double[firstMatrix.elements.GetLength(0), firstMatrix.elements.GetLength(1)];
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+                Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)]
+            };
+            
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
-                {
-                    result.elements[i, j]=firstMatrix.elements[i, j]+secondMatrix.elements[i,j];
-                }
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
+                    result.Elements[i, j]=firstMatrix.Elements[i, j]+secondMatrix.Elements[i,j];
             }
 
 
             return result;
         }
+        
         public static Matrix operator *(Matrix firstMatrix, Matrix secondMatrix)
         {
-            if (firstMatrix.elements.GetLength(0) != secondMatrix.elements.GetLength(1))
-            {
+            if (firstMatrix.Elements.GetLength(0) != secondMatrix.Elements.GetLength(1))
                 throw new InvalidOperationException("Cannot multiply two matrixes.Number of rows in first matrix " +
-                    "has to be equal to number of column in second.");
-            }
-            Matrix result = new Matrix();
-            result.elements = new double[firstMatrix.elements.GetLength(0), secondMatrix.elements.GetLength (1)];
+                                                    "has to be equal to number of column in second.");
+
+            var result = new Matrix();
+            result.Elements = new double[firstMatrix.Elements.GetLength(0), secondMatrix.Elements.GetLength (1)];
 
 
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
                 {
-                    for (int k = 0; k < result.elements.GetLength(0); k++)
-                    {
-                        result.elements[i, j] += firstMatrix.elements[i, k] * secondMatrix.elements[k, j];
-                    }
+                    for (var k = 0; k < result.Elements.GetLength(0); ++k)
+                        result.Elements[i, j] += firstMatrix.Elements[i, k] * secondMatrix.Elements[k, j];
                 }
             }
 
             return result;
         }
+        
         public static Matrix operator -(Matrix firstMatrix, Matrix secondMatrix)
         {
             
-            if (firstMatrix.elements.GetLength(0) != firstMatrix.elements.GetLength(0)
-                || firstMatrix.elements.GetLength(1) != firstMatrix.elements.GetLength(1))
-            {
+            if (firstMatrix.Elements.GetLength(0) != firstMatrix.Elements.GetLength(0)
+                || firstMatrix.Elements.GetLength(1) != firstMatrix.Elements.GetLength(1))
                 throw new InvalidOperationException("Cannot substract two matrixes with different sizes.");
-            }
-            Matrix result = new Matrix();
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+            var result = new Matrix();
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
-                {
-                    result.elements[i, j] = firstMatrix.elements[i, j] - secondMatrix.elements[i, j];
-                }
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
+                    result.Elements[i, j] = firstMatrix.Elements[i, j] - secondMatrix.Elements[i, j];
             }
 
             return result;
@@ -624,79 +550,73 @@ namespace SMatrix
 
         public static Matrix operator +(Matrix firstMatrix, double number)
         {
-            Matrix result = new Matrix();
-            result.elements = new double[firstMatrix.elements.GetLength(0), firstMatrix.elements.GetLength(1)];
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+            var result = new Matrix();
+            result.Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)];
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
-                {
-                    result.elements[i, j] = firstMatrix.elements[i, j] + number;
-                }
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
+                    result.Elements[i, j] = firstMatrix.Elements[i, j] + number;
             }
             return result;
         }
+        
         public static Matrix operator -(Matrix firstMatrix, double number)
         {
-            Matrix result = new Matrix();
-            result.elements = new double[firstMatrix.elements.GetLength(0), firstMatrix.elements.GetLength(1)];
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+            var result = new Matrix();
+            result.Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)];
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
-                {
-                    result.elements[i, j] = firstMatrix.elements[i, j] - number;
-                }
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
+                    result.Elements[i, j] = firstMatrix.Elements[i, j] - number;
             }
             return result;
         }
+        
         public static Matrix operator *(Matrix firstMatrix, double number)
         {
-            Matrix result = new Matrix();
-            result.elements = new double[firstMatrix.elements.GetLength(0), firstMatrix.elements.GetLength(1)];
-            for (int i = 0; i < result.elements.GetLength(0); i++)
+            var result = new Matrix
             {
-                for (int j = 0; j < result.elements.GetLength(1); j++)
-                {
-                    result.elements[i, j] = firstMatrix.elements[i, j] * number;
-                }
+                Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)]
+            };
+            
+            for (var i = 0; i < result.Elements.GetLength(0); ++i)
+            {
+                for (var j = 0; j < result.Elements.GetLength(1); ++j)
+                    result.Elements[i, j] = firstMatrix.Elements[i, j] * number;
             }
             return result;
         }
 
         public static bool operator ==(Matrix firstMatrix, Matrix secondMatrix)
         {
-            if (firstMatrix.elements.GetLength(0)!= secondMatrix.elements.GetLength(0) ||
-                firstMatrix.elements.GetLength(1) != secondMatrix.elements.GetLength(1))
-            {
+            if (firstMatrix.Elements.GetLength(0)!= secondMatrix.Elements.GetLength(0) ||
+                firstMatrix.Elements.GetLength(1) != secondMatrix.Elements.GetLength(1))
                 return false;
-            }
-            for (int i = 0; i < firstMatrix.elements.GetLength(0); i++)
+            
+            for (int i = 0; i < firstMatrix.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < firstMatrix.elements.GetLength(1); j++)
+                for (int j = 0; j < firstMatrix.Elements.GetLength(1); ++j)
                 {
-                    if (firstMatrix.elements[i, j] != secondMatrix.elements[i, j])
-                    {
+                    if (firstMatrix.Elements[i, j] != secondMatrix.Elements[i, j])
                         return false;
-                    }
                 }
             }
 
             return true;
         }
+        
         public static bool operator !=(Matrix firstMatrix, Matrix secondMatrix)
         {
-            if (firstMatrix.elements.GetLength(0) != secondMatrix.elements.GetLength(0) ||
-               firstMatrix.elements.GetLength(1) != secondMatrix.elements.GetLength(1))
-            {
+            if (firstMatrix.Elements.GetLength(0) != secondMatrix.Elements.GetLength(0) ||
+               firstMatrix.Elements.GetLength(1) != secondMatrix.Elements.GetLength(1))
                 return true;
-            }
-            for (int i = 0; i < firstMatrix.elements.GetLength(0); i++)
+            
+            for (int i = 0; i < firstMatrix.Elements.GetLength(0); ++i)
             {
-                for (int j = 0; j < firstMatrix.elements.GetLength(1); j++)
+                for (int j = 0; j < firstMatrix.Elements.GetLength(1); ++j)
                 {
-                    if (firstMatrix.elements[i, j] != secondMatrix.elements[i, j])
-                    {
+                    if (firstMatrix.Elements[i, j] != secondMatrix.Elements[i, j])
                         return true;
-                    }
                 }
             }
 
@@ -708,11 +628,7 @@ namespace SMatrix
 
         public override bool Equals(object? obj)
         {
-            if (!(obj is Matrix))
-            {
-                return false;
-            }
-            return this == (Matrix)obj;
+            return obj is not Matrix matrix || this == matrix;
         }
 
         #endregion
