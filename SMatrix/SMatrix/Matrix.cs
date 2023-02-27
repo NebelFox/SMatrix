@@ -1,191 +1,177 @@
-﻿using System.Globalization;
-
-namespace SMatrix
+﻿namespace SMatrix
 {
+    /// <summary>
+    /// wrapper for double[,] with arithmetical and matrix-specific operations.
+    /// Most of the methods are pure, i.e. they return a new instance
+    /// instead of modifying the one they are called on.
+    /// </summary>
     public class Matrix
     {
-        public double[,] Elements = new double[0,0];
+        private readonly double[,] _content;
 
-        public int Rows => Elements.GetLength(0);
-        public int Columns => Elements.GetLength(1);
-
-        #region Fillers
+        #region Contructors
 
         /// <summary>
-        /// Fills Matrix sized nxm with given number.
+        /// NxM matrix of zeros.
         /// </summary>
         /// <param name="n">Number of rows</param>
         /// <param name="m">Number of columns</param>
-        /// <param name="number">Value to fill with</param>
-        public void FillWithNumber(int  n, int m, double number)
+        public Matrix(int n, int m)
         {
-            Elements = new double[n,m];
-            for (var i = 0; i < n; ++i)
-            {
-                for (var j = 0; j < m; ++j)
-                    Elements[i,j] = number;
-            }
+            _content = new double[n, m];
         }
-        
+
         /// <summary>
-        /// Create an Identity matrix.
+        /// Square NxN matrix of zeros.
         /// </summary>
-        /// <param name="n">Size of matrix</param>
-        public void FillIdentityMatrix(int n)
-        {
-            Elements = new double[n, n];
-            for (var i = 0;i < n; ++i)
-                Elements[i, i] = 1;
-        }
-        
+        /// <param name="n">Number of rows and columns</param>
+        public Matrix(int n) : this(n, n)
+        { }
+
         /// <summary>
-        /// Create a Matrix Unit, i.e. where all the values are 0, but only the [i,j] is 1.
+        /// NxM matrix, filled via <paramref name="filler"/>
         /// </summary>
-        /// <param name="i">Row position of 1</param>
-        /// <param name="j">Column position of 1</param>
         /// <param name="n">Number of rows</param>
         /// <param name="m">Number of columns</param>
-        public void FillMatrixUnit(int i , int j, int n , int m)
+        /// <param name="filler">Function, that returns value for each position (row, column)</param>
+        public Matrix(int n, int m, Func<int, int, double> filler) : this(n, m)
         {
-            Elements =new double[n,m];
-            Elements[i, j] = 1;
+            for (var i = 0; i < Rows; ++i)
+            {
+                for (var j = 0; j < Columns; ++j)
+                    _content[i, j] = filler(i, j);
+            }
+        }
+
+        /// <summary>
+        /// Square NxN matrix, filled via <paramref name="filler"/>
+        /// </summary>
+        /// <param name="n">Number of rows and columns</param>
+        /// <param name="filler">Function, that returns value for each position (row, column)</param>
+        public Matrix(int n, Func<int, int, double> filler) : this(n, n, filler)
+        { }
+
+        /// <summary>
+        /// NxM matrix, filled with <paramref name="value"/>
+        /// </summary>
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
+        /// <param name="value">Value to fill the matrix with</param>
+        public Matrix(int n, int m, double value) : this(n, m, (_, _) => value)
+        { }
+
+        /// <summary>
+        /// Square NxN matrix, filled with <paramref name="value"/>
+        /// </summary>
+        /// <param name="n">Number of rows and columns</param>
+        /// <param name="value">Value to fill the matrix with</param>
+        public Matrix(int n, double value) : this(n, n, value)
+        { }
+
+        /// <summary>
+        /// Matrix from two-dimensional array
+        /// </summary>
+        /// <param name="matrix"></param>
+        public Matrix(double[,] matrix) : this(matrix.GetLength(0), matrix.GetLength(1), (i, j) => matrix[i, j])
+        { }
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Number of rows of this matrix, i.e. the size of the first dimension.
+        /// </summary>
+        public int Rows => _content.GetLength(0);
+
+        /// <summary>
+        /// Number of columns of this matrix, i.e. the size of the second dimension.
+        /// </summary>
+        public int Columns => _content.GetLength(1);
+
+        /// <summary>
+        /// Get or set the value at specific position
+        /// </summary>
+        /// <param name="i">Row index</param>
+        /// <param name="j">Column index</param>
+        public double this[int i, int j]
+        {
+            get => _content[i, j];
+            set => _content[i, j] = value;
         }
 
         #endregion
 
-        #region Addition
+        #region Named Contstructors
 
         /// <summary>
-        /// Add a matrix to this instance, element-wise.
+        /// NxM matrix, filled with 1.
         /// </summary>
-        /// <param name="that">Matrix to add to this instance</param>
-        public void AddMatrix(Matrix that)
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
+        public static Matrix Ones(int n, int m)
         {
-            if (Elements.GetLength(0) != that.Elements.GetLength(0) || Elements.GetLength(1) != that.Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot add two matrices with different sizes.");
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] += that.Elements[i, j];
-            }
+            return new Matrix(n, m, 1);
         }
 
         /// <summary>
-        /// Add number to each element in this matrix.
+        /// Square NxN matrix, filled with 1.
         /// </summary>
-        /// <param name="number">Value to add</param>
-        public void AddNumber(double number)
+        /// <param name="n">Number of rows and columns</param>
+        public static Matrix Ones(int n)
         {
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] += number;
-            }
+            return Ones(n, n);
         }
 
         /// <summary>
-        /// Add number to the specific element in matrix.
+        /// NxM matrix, where each element on the major diagonal is 1, and the rest are 0.
+        /// Values at [i, j] where i or j >= max(n, m) are 0 as well.
         /// </summary>
-        /// <param name="number">Value to add</param>
-        /// <param name="i">Row position of the element.</param>
-        /// <param name="j">Column position of the element.</param>
-        public void AddNumberSpecific(double number, int i, int j)
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
+        public static Matrix Identity(int n, int m)
         {
-            this.Elements[i, j] += number;
+            return new Matrix(n, n, (i, j) => Convert.ToDouble(i == j));
+        }
+
+        /// <summary>
+        /// Square NxN matrix, where each element on the major diagonal is 1, and the rest are 0.
+        /// </summary>
+        /// <param name="n">Number of rows and columns</param>
+        public static Matrix Identity(int n)
+        {
+            return Identity(n, n);
+        }
+
+        /// <summary>
+        /// NxM matrix, where the value at [i, j] is 1, and the rest are 0.
+        /// </summary>
+        /// <param name="n">Number of rows</param>
+        /// <param name="m">Number of columns</param>
+        /// <param name="i">Row index of 1</param>
+        /// <param name="j">Columns index of 1</param>
+        public static Matrix Unit(int n, int m, int i, int j)
+        {
+            var matrix = new Matrix(n, m) { [i, j] = 1 };
+            return matrix;
         }
 
         #endregion
 
-        #region Difference
+        #region IO
+
         /// <summary>
-        /// Subtract a matrix from this instance, element-wise.
+        /// Write this.ToString() to the console.
         /// </summary>
-        /// <param name="that">Matrix to subtract</param>
-        public void SubtractMatrix(Matrix that)
-        {
-            if (Elements.GetLength(0) != that.Elements.GetLength(0) || Elements.GetLength(1) != that.Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot subtract two matrices with different sizes.");
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] -= that.Elements[i, j];
-            }
-        }
-        /// <summary>
-        /// Subtract number from each element in this matrix.
-        /// </summary>
-        /// <param name="number">Value to subtract</param>
-        public void SubtractNumber(double number)
-        {
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] -= number;
-            }
-        }
-        #endregion
-
-        #region Transition
-        /// <summary>
-        /// Transpose the matrix.
-        /// </summary>
-        public void Transition()
-        {
-            var clone = new double[Elements.GetLength(0), Elements.GetLength(1)];
-
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    clone[i, j] = Elements[i, j];
-            }
-
-            Elements = new double[clone.GetLength(1), clone.GetLength(0)];
-
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] = clone[j, i];
-            }
-
-        }
-        #endregion
-
-        #region ConsoleCommands
-        /// <summary>
-        /// Print matrix in console.
-        /// </summary>
-        public void ConsoleOutput()
-        {
-            for (var i = 0; i < Elements.GetLength(0); ++i, Console.WriteLine("\n"))
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j, Console.Write("\t"))
-                    Console.Write(Elements[i, j]);
-            }
-        }
-        /// <summary>
-        /// Input matrix from console.
-        /// </summary>
-        public void ConsoleInput()
-        {
-            Console.WriteLine("Enter number of rows");
-            var numberOfRows = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Enter number of columns:");
-            var numberOfCols = Convert.ToInt32(Console.ReadLine());
-            for (var i = 0; i < numberOfRows; ++i)
-            {
-                for (var j = 0; j < numberOfCols; ++j)
-                {
-                    Console.WriteLine($"Enter element at position [{i},{j}]: ");
-                    Elements[i, j] = Convert.ToInt32(Console.ReadLine());
-                }
-            }    
-        }
-
         public void WriteToConsole()
         {
             Write(Console.Out);
         }
 
+        /// <summary>
+        /// Write this.ToString() to a file
+        /// </summary>
+        /// <param name="filename">Destination file</param>
         public void WriteToFile(string filename)
         {
             using var writer = new StreamWriter(filename);
@@ -195,443 +181,368 @@ namespace SMatrix
         private void Write(TextWriter writer)
         {
             writer.WriteLine($"{Rows} {Columns}");
-            writer.WriteLine(string.Join('\n', Enumerable.Range(0, Rows).Select(
-                                         i => string.Join(' ', Enumerable.Range(0, Columns).Select(
-                                                              j => DoubleToString(Elements[i, j]))))));
+            writer.WriteLine(ToString());
         }
 
-        public void ReadFromConsole()
+        /// <summary>
+        /// Read a matrix from the console
+        /// </summary>
+        public static Matrix ReadFromConsole()
         {
             Console.Write("Enter the number of rows and columns: ");
-            Read(Console.In);
+            return Read(Console.In);
         }
 
-        public void ReadFromFile(string filename)
+        /// <summary>
+        /// Deserialize a matrix from a file.
+        /// Expects the shape of the matrix in the format "Rows Columns" as the first row.
+        /// </summary>
+        /// <param name="filename"></param>
+        public static Matrix ReadFromFile(string filename)
         {
             using var reader = new StreamReader(filename);
-            Read(reader);
+            return Read(reader);
         }
 
-        private void Read(TextReader reader)
+        private static Matrix Read(TextReader reader)
         {
-            int[] size = ReadVector(reader, Convert.ToInt32, 0, 2);
-            Elements = new double[size[0], size[1]];
-            
-            for (var i = 0; i < Rows; ++i)
+            int[] size = Utils.ReadVector(reader, Convert.ToInt32, 2, 0);
+            (int rows, int columns) = (size[0], size[1]);
+            var matrix = new Matrix(size[0], size[1]);
+
+            for (var i = 0; i < rows; ++i)
             {
+                double[] xs = Utils.ReadVector(reader, Utils.ParseDouble, columns, i + 1);
 
-                double[] xs = ReadVector(reader, ParseDouble, i+1, Columns);
-                
-                for (var j = 0; j < xs.Length; ++j)
-                    Elements[i, j] = xs[j];
+                for (var j = 0; j < columns; ++j)
+                    matrix[i, j] = xs[j];
             }
-        }
 
-        private static T[] ReadVector<T>(TextReader reader, 
-                                         Func<string, T> parseValue,
-                                         int lineIndex,
-                                         int expectedLength)
-        {
-            // StringSplitOptions.RemoveEmptyEntries = 1
-            // StringSplitOptions.TrimEntries = 2
-            const StringSplitOptions options = (StringSplitOptions)(1 + 2);
-            T[] xs = reader.ReadLine()?
-                           .Split(new[]{' ', '\t'}, options)
-                           .Select(parseValue)
-                           .ToArray() 
-                  ?? throw new ArgumentException(
-                         $"Expected to read {lineIndex}th line, but reader is empty", nameof(reader));
-            if (xs.Length != expectedLength)
-                throw new FormatException(
-                    $"The {lineIndex}th line expected to contain {expectedLength} values, but got {xs.Length}");
-            return xs;
-        }
-
-        private static double ParseDouble(string s)
-        {
-            return double.Parse(s, NumberStyles.Number, CultureInfo.InvariantCulture);
-        }
-
-        private static string DoubleToString(double x)
-        {
-            return x.ToString(CultureInfo.InvariantCulture);
+            return matrix;
         }
 
         #endregion
 
-        #region Multiplication
-        /// <summary>
-        /// Multiplies each element of this matrix by given number.
-        /// </summary>
-        /// <param name="number">Value to multiply by</param>
-        public void MultiplyByNumber(double number)
-        {
-            for (var i = 0; i <Elements.GetLength(0) ; ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] *= number;
-            }
-        }
+        #region Matrix-Specific Operations
 
         /// <summary>
-        /// Perform matrix multiplication
+        /// Transposed matrix, i.e. elements are swapped over the major diagonal,
+        /// So the element at [i, j] is at [j, i].
         /// </summary>
-        /// <param name="that">Matrix to be used as right hand side of the multiplication</param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void MatrixMultiplication(Matrix that)
+        public Matrix T => new Matrix(Columns, Rows, (i, j) => _content[j, i]);
+
+        /// <summary>
+        /// Dot product of this matrix with that, i.e. matrix multiplication.
+        /// </summary>
+        /// <param name="that">Matrix to be used as the right hand side of the multiplication</param>
+        /// <exception cref="InvalidOperationException">If this.Rows != that.Columns</exception>
+        public Matrix Dot(Matrix that)
         {
-            if (Elements.GetLength(0) != that.Elements.GetLength(1))
-                throw new ArgumentException(
-                    "Rows number of left hand side matrix doesn't match columns number of right hand side matrix", 
+            return Rows == that.Columns
+                ? new Matrix(Rows,
+                             that.Columns,
+                             (i, j) => Enumerable.Range(0, Rows).Sum(k => _content[i, k] * that._content[k, j]))
+                : throw new ArgumentException(
+                    "Rows number of left hand side matrix doesn't match columns number of right hand side matrix",
                     nameof(that));
-            
-            var mult = new double[Elements.GetLength(0), that.Elements.GetLength(1)];
-
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < that.Elements.GetLength(1); ++j)
-                {
-                    mult[i, j] = 0;
-                    for (var k = 0; k < Elements.GetLength(0); ++k)
-                        mult[i, j] += Elements[i, k] * that.Elements[k, j];
-                }
-            }
         }
+
         #endregion
 
         #region Inversion
 
-        private void Upper(int size, int k, double[,] ident)
+        /// <summary>
+        /// Inversed matrix
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If this matrix is not square</exception>
+        public Matrix Inv()
+        {
+            if (Rows != Columns)
+                throw new InvalidOperationException("Cannot find inverse matrix of non-square matrix");
+
+            Matrix identity = Identity(Rows, Columns);
+
+            for (var k = 0; k < Rows; ++k)
+                Upper(Rows, k, identity);
+
+            for (var k = 0; k < Rows; ++k)
+                Lower(Rows, k, identity);
+
+            return identity;
+        }
+
+        private void Upper(int size, int k, Matrix identity)
         {
             for (var j = 0; j < size; ++j)
-                ident[k, j] /= Elements[k, k];
+                identity[k, j] /= _content[k, k];
 
             for (int i = k + 1; i < size; ++i)
             {
                 for (var j = 0; j < size; ++j)
-                    ident[i, j] -= ident[k, j] * Elements[i, k];
+                    identity[i, j] -= identity[k, j] * _content[i, k];
             }
         }
 
-        private void Lower(int size, int k, double[,] ident)
+        private void Lower(int size, int k, Matrix identity)
         {
             for (int i = size - k - 2; i >= 0; --i)
             {
                 for (var j = 0; j < size; ++j)
-                    ident[i, j] -= ident[size - k - 1, j] * Elements[i, size - k - 1];
+                    identity[i, j] -= identity[size - k - 1, j] * _content[i, size - k - 1];
             }
-        }
-
-        public void InversionMatrix()
-        {
-            if (Elements.GetLength(0) != Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot find inverse matrix.");
-            
-            var ident = new double[Elements.GetLength(0), Elements.GetLength(1)];
-
-            for (var i = 0; i < ident.GetLength(0); ++i)
-            {
-                for (var j = 0; j < ident.GetLength(1); ++j)
-                    ident[i, j] = Convert.ToInt32(i == j);
-            }
-
-            for (var k = 0; k < Elements.GetLength(0); ++k)
-                Upper(Elements.GetLength(0), k, ident);
-
-            for (var k = 0; k < Elements.GetLength(0); ++k)
-                Lower(Elements.GetLength(0), k, ident);
         }
 
         #endregion
 
         #region SumOfDiagonal
 
-        public void MainDiagonal()
+        /// <summary>
+        /// Total of the major diagonal values, i.e. values at [i, i]
+        /// </summary>
+        public double MajorDiagonalSum()
         {
-            double main = 0;
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                {
-                    if (i == j)
-                        main += Elements[i, j];
-                }
-            }
+            return Enumerable.Range(0, Math.Min(Rows, Columns)).Sum(i => _content[i, i]);
         }
 
-        public void AdditionalDiagonal()
+        /// <summary>
+        /// Total of the minor diagonal values, i.e. values at [i, n - i - 1 ], where n = min(Rows, Columns)
+        /// </summary>
+        public double MinorDiagonalSum()
         {
-            double add = 0;
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                {
-                    if (i == Elements.GetLength(1) - j - 1)
-                        add += Elements[i, j];
-                }
-            }
+            int n = Math.Min(Rows, Columns);
+            return Enumerable.Range(0, n).Sum(i => _content[i, n - i - 1]);
         }
 
         #endregion
 
         #region Rank
 
-        public void SwapRows(int row1, int row2, int col)
+        public void Rank()
         {
-            for (var i = 0; i < col; ++i)
-                (Elements[row1, i], Elements[row2, i]) = (Elements[row2, i], Elements[row1, i]);
-        }
-
-        public void RankOfMatrix()
-        {
-            int rank = Elements.GetLength(1);
+            int rank = Columns;
 
             for (var row = 0; row < rank; ++row)
             {
-                if (Elements[row, row] != 0)
+                if (_content[row, row] != 0)
                 {
-                    for (var col = 0; col < Elements.GetLength(0); ++col)
+                    for (var col = 0; col < Rows; ++col)
                     {
-                        if (col != row)
-                        {
-                            double mult = Elements[col, row] / Elements[row, row];
-                            for (var i = 0; i < rank; ++i)
-                                Elements[col, i] -= (int)mult * Elements[row, i];
-                        }
+                        if (col == row)
+                            continue;
+                        var mult = (int)(_content[col, row] / _content[row, row]);
+                        for (var i = 0; i < rank; ++i)
+                            _content[col, i] -= mult * _content[row, i];
                     }
                 }
                 else
                 {
                     var reduce = true;
 
-                    for (int i = row + 1; i < Elements.GetLength(0); ++i)
+                    for (int i = row + 1; i < Rows; ++i)
                     {
-                        if (Elements[i, row] != 0)
-                        {
-                            SwapRows(row, i, rank);
-                            reduce = false;
-                            break;
-                        }
+                        if (_content[i, row] == 0)
+                            continue;
+                        SwapRows(row, i, rank);
+                        reduce = false;
+                        break;
                     }
 
                     if (reduce)
                     {
                         ++rank;
-
-                        for (var i = 0; i < Elements.GetLength(0); ++i)
-                            Elements[i, row] = Elements[i, rank];
+                        for (var i = 0; i < Rows; ++i)
+                            _content[i, row] = _content[i, rank];
                     }
 
                     --row;
                 }
             }
+        }
 
-            //output
-            //Console.WriteLine(rank);
+        private void SwapRows(int row1, int row2, int col)
+        {
+            for (var i = 0; i < col; ++i)
+                (_content[row1, i], _content[row2, i]) = (_content[row2, i], _content[row1, i]);
         }
 
         #endregion
 
-        #region Division by a scalar
-        /// <summary>
-        /// Divides all elements by specific number.
-        /// </summary>
-        /// <param name="scalar">Number that the matrix is divided by.</param>
-        public void DivideByScalar(double scalar)
-        {
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                    Elements[i, j] /= scalar;
-            }
-        }
-
-
-        #endregion
-
-        #region Find Min/Max values
+        #region Min/Max
 
         /// <summary>
-        /// Finds and returns the min element of matrix.
+        /// Get the min value among the whole matrix.
         /// </summary>
-        public double FindMin()
+        public double Min()
         {
-            double min = Elements[0, 0];
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                {
-                    if (Elements[i, j] <= min)
-                        min = Elements[i, j];
-                }
-            }
-            return min;
+            return Enumerable.Range(0, Rows)
+                             .Min(i => Enumerable.Range(0, Columns).Min(j => _content[i, j]));
         }
 
         /// <summary>
-        /// Finds and returns the max element of matrix.
+        /// Get the max value among the whole matrix.
         /// </summary>
-        public double FindMax()
+        public double Max()
         {
-            double max = Elements[0, 0];
-            for (var i = 0; i < Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < Elements.GetLength(1); ++j)
-                {
-                    if (Elements[i, j] >= max)
-                        max = Elements[i, j];
-                }
-            }
-            return max;
+            return Enumerable.Range(0, Rows)
+                             .Max(i => Enumerable.Range(0, Columns).Max(j => _content[i, j]));
         }
 
         #endregion
 
-        #region Operators
+        #region Binary Algebraic Operators
 
-        public static Matrix operator +(Matrix firstMatrix, Matrix secondMatrix)
+        /// <summary>
+        /// Add <paramref name="rhs"/> to each element of the <paramref name="lhs"/>.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        public static Matrix operator +(Matrix lhs, double rhs)
         {
-            if (firstMatrix.Elements.GetLength(0) != firstMatrix.Elements.GetLength(0) 
-                || firstMatrix.Elements.GetLength(1) != firstMatrix.Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot add two matrices with different sizes.");
-            
-            var result = new Matrix
-            {
-                Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)]
-            };
-            
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                    result.Elements[i, j]=firstMatrix.Elements[i, j]+secondMatrix.Elements[i,j];
-            }
-
-
-            return result;
-        }
-        
-        public static Matrix operator *(Matrix firstMatrix, Matrix secondMatrix)
-        {
-            if (firstMatrix.Elements.GetLength(0) != secondMatrix.Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot multiply two matrixes.Number of rows in first matrix " +
-                                                    "has to be equal to number of column in second.");
-
-            var result = new Matrix();
-            result.Elements = new double[firstMatrix.Elements.GetLength(0), secondMatrix.Elements.GetLength (1)];
-
-
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                {
-                    for (var k = 0; k < result.Elements.GetLength(0); ++k)
-                        result.Elements[i, j] += firstMatrix.Elements[i, k] * secondMatrix.Elements[k, j];
-                }
-            }
-
-            return result;
-        }
-        
-        public static Matrix operator -(Matrix firstMatrix, Matrix secondMatrix)
-        {
-            
-            if (firstMatrix.Elements.GetLength(0) != firstMatrix.Elements.GetLength(0)
-                || firstMatrix.Elements.GetLength(1) != firstMatrix.Elements.GetLength(1))
-                throw new InvalidOperationException("Cannot substract two matrixes with different sizes.");
-            var result = new Matrix();
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                    result.Elements[i, j] = firstMatrix.Elements[i, j] - secondMatrix.Elements[i, j];
-            }
-
-            return result;
+            return new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] + rhs);
         }
 
-        public static Matrix operator +(Matrix firstMatrix, double number)
+        /// <summary>
+        /// Add two matrices element-wise.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        /// <exception cref="InvalidOperationException">Shape of matrices doesn't match</exception>
+        public static Matrix operator +(Matrix lhs, Matrix rhs)
         {
-            var result = new Matrix();
-            result.Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)];
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                    result.Elements[i, j] = firstMatrix.Elements[i, j] + number;
-            }
-            return result;
-        }
-        
-        public static Matrix operator -(Matrix firstMatrix, double number)
-        {
-            var result = new Matrix();
-            result.Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)];
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                    result.Elements[i, j] = firstMatrix.Elements[i, j] - number;
-            }
-            return result;
-        }
-        
-        public static Matrix operator *(Matrix firstMatrix, double number)
-        {
-            var result = new Matrix
-            {
-                Elements = new double[firstMatrix.Elements.GetLength(0), firstMatrix.Elements.GetLength(1)]
-            };
-            
-            for (var i = 0; i < result.Elements.GetLength(0); ++i)
-            {
-                for (var j = 0; j < result.Elements.GetLength(1); ++j)
-                    result.Elements[i, j] = firstMatrix.Elements[i, j] * number;
-            }
-            return result;
+            return lhs.Rows != rhs.Rows || lhs.Columns != rhs.Columns
+                ? throw new InvalidOperationException("Cannot add matrices of different size.")
+                : new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] + rhs[i, j]);
         }
 
-        public static bool operator ==(Matrix firstMatrix, Matrix secondMatrix)
+        /// <summary>
+        /// Subtract <paramref name="rhs"/> from each element of the <paramref name="lhs"/>.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        public static Matrix operator -(Matrix lhs, double rhs)
         {
-            if (firstMatrix.Elements.GetLength(0)!= secondMatrix.Elements.GetLength(0) ||
-                firstMatrix.Elements.GetLength(1) != secondMatrix.Elements.GetLength(1))
-                return false;
-            
-            for (int i = 0; i < firstMatrix.Elements.GetLength(0); ++i)
-            {
-                for (int j = 0; j < firstMatrix.Elements.GetLength(1); ++j)
-                {
-                    if (firstMatrix.Elements[i, j] != secondMatrix.Elements[i, j])
-                        return false;
-                }
-            }
-
-            return true;
+            return new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] - rhs);
         }
-        
-        public static bool operator !=(Matrix firstMatrix, Matrix secondMatrix)
-        {
-            if (firstMatrix.Elements.GetLength(0) != secondMatrix.Elements.GetLength(0) ||
-               firstMatrix.Elements.GetLength(1) != secondMatrix.Elements.GetLength(1))
-                return true;
-            
-            for (int i = 0; i < firstMatrix.Elements.GetLength(0); ++i)
-            {
-                for (int j = 0; j < firstMatrix.Elements.GetLength(1); ++j)
-                {
-                    if (firstMatrix.Elements[i, j] != secondMatrix.Elements[i, j])
-                        return true;
-                }
-            }
 
-            return false;
+        /// <summary>
+        /// Subtract two matrices element-wise.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        /// <exception cref="InvalidOperationException">Shape of matrices doesn't match</exception>
+        public static Matrix operator -(Matrix lhs, Matrix rhs)
+        {
+            return lhs.Rows != rhs.Rows || lhs.Columns != rhs.Columns
+                ? throw new InvalidOperationException("Cannot subtract matrices of different size.")
+                : new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] - rhs[i, j]);
         }
-        #endregion
 
-        #region Overriden Functions
-
-        public override bool Equals(object? obj)
+        /// <summary>
+        /// Multiply each element of the <paramref name="lhs"/> by <paramref name="rhs"/>.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        public static Matrix operator *(Matrix lhs, double rhs)
         {
-            return obj is not Matrix matrix || this == matrix;
+            return new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] * rhs);
+        }
+
+        /// <summary>
+        /// Multiply two matrices element-wise.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        /// <exception cref="InvalidOperationException">Shape of matrices doesn't match</exception>
+        public static Matrix operator *(Matrix lhs, Matrix rhs)
+        {
+            return lhs.Rows != rhs.Rows || lhs.Columns != rhs.Columns
+                ? throw new InvalidOperationException("Cannot multiply matrices of different size.")
+                : new Matrix(lhs.Rows, rhs.Columns, (i, j) => lhs[i, j] * rhs[i, j]);
+        }
+
+        /// <summary>
+        /// Divide each element of the <paramref name="lhs"/> by <paramref name="rhs"/>.
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        public static Matrix operator /(Matrix lhs, double rhs)
+        {
+            return new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] * rhs);
+        }
+
+        /// <summary>
+        /// Divide two matrices element-wise
+        /// </summary>
+        /// <param name="lhs">Left hand side</param>
+        /// <param name="rhs">Right hand side</param>
+        /// <exception cref="InvalidOperationException">Shape of matrices doesn't match</exception>
+        public static Matrix operator /(Matrix lhs, Matrix rhs)
+        {
+            return lhs.Rows != rhs.Rows || lhs.Columns != rhs.Columns
+                ? throw new InvalidOperationException("Cannot divide matrices of different size.")
+                : new Matrix(lhs.Rows, lhs.Columns, (i, j) => lhs[i, j] / rhs[i, j]);
         }
 
         #endregion
 
+        #region Comparison Operators
+
+        /// <summary>
+        /// Check if two matrices are equal, i.e. the size and content is the same.
+        /// </summary>
+        /// <param name="lhs">First matrix</param>
+        /// <param name="rhs">Second matrix</param>
+        public static bool operator ==(Matrix lhs, Matrix rhs)
+        {
+            return lhs.Rows == rhs.Rows
+                && lhs.Columns == rhs.Columns
+                && Enumerable.Range(0, lhs.Rows)
+                             .All(i => Enumerable.Range(0, lhs.Columns).All(j => lhs[i, j] == rhs[i, j]));
+        }
+
+        /// <summary>
+        /// Check if two matrices differ, i.e. the size or content is not absolutely the same.
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        public static bool operator !=(Matrix lhs, Matrix rhs)
+        {
+            return lhs.Rows != rhs.Rows
+                || lhs.Columns != rhs.Columns
+                || Enumerable.Range(0, lhs.Rows)
+                             .Any(i => Enumerable.Range(0, lhs.Columns).Any(j => lhs[i, j] != rhs[i, j]));
+        }
+
+        #endregion
+
+        #region Object Methods
+
+        public override string ToString()
+        {
+            return string.Join('\n',
+                               Enumerable.Range(0, Rows)
+                                         .Select(RowToString));
+        }
+
+        private string RowToString(int i)
+        {
+            return string.Join(' ',
+                               Enumerable.Range(0, Columns)
+                                         .Select(
+                                              j => Utils.DoubleToString(
+                                                  _content[i, j])));
+        }
+
+        public override bool Equals(object? that)
+        {
+            return that is not Matrix matrix || this == matrix;
+        }
+
+        public override int GetHashCode()
+        {
+            return _content.GetHashCode();
+        }
+
+        #endregion
     }
 }
